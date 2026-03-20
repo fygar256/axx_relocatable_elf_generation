@@ -5,7 +5,7 @@ author: fygar256
 slide: false
 ---
 
-I successfully created a relocatable x86_64 ELF object file using axx on FreeBSD, and linked and executed it. On March 12, 2026, paxx and caxx gained the `-o` option and relocatable ELF output functionality. Relocatable ELF generation in paxx and caxx only supports elf64. Relocatable ELF generation as elf64 is a special case, but since I only have x86_64 machines, I only have one for now. I'll consider general object file output later. I believe the current axx ELF output supports Linux. Strictly speaking, since FreeBSD and Linux are different operating systems, you need to specify 9 for OSABI in the ELF file and 0 for Linux. In that case, you need to specify something like `--osabi Linux` as the first option passed to axx or caxx. I don't think ld checks that far, though. Assemble
+I successfully created a relocatable x86_64 ELF object file using axx on FreeBSD, and linked and executed it. On March 12, 2026, paxx and caxx gained the `-o` option and relocatable ELF output functionality. Relocatable ELF generation in paxx and caxx only supports elf64. As object output, relocatable ELF generation as elf64 is a special case, but since I only have x86_64 machines, I only have one for now. I'll consider general object file output later. I believe the current axx ELF output supports Linux. Strictly speaking, since FreeBSD and Linux are different operating systems, you need to specify 9 for OSABI in the ELF file and 0 for Linux. In that case, you need to specify something like `--osabi Linux` as the first option passed to axx or caxx. I don't think ld checks that far, though. Assemble
 
 ```
 axx.py hello.axx hello.s -o hello.o
