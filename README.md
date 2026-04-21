@@ -56,6 +56,14 @@ msg: .ascii "hello, world\n"
 len: .equ $$ - msg
 endsection
 ```
+The LLVM linker also passed.
+
+```
+% ld.lld -o hello hello.o
+% ./hello
+hello, world
+%
+```
 
 Note that when running on Linux, it seems to work fine as long as you change the system call number.
 
