@@ -8,7 +8,6 @@
 ; hello, world
 ;
 .global _hello
-    .org 0
 section .text
 _hello:
         mov     eax, 4      ; sys_write (04)

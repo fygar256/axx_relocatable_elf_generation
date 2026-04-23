@@ -4,4 +4,6 @@
 MOV r,!e   ::   0xb8|r,e,e>>8,e>>16,e>>24
 MOVABS RSI,!e::   0x48,0xbe,@@[8,*(e,%%)]
 SYSCALL     ::   0xf,0x5
+MOV RAX,!e  ::   0x48,0xb8,@@[8,*(e,%%)]
+JMP RAX     :: 0xff,0xe0
 DB e        ::   e
