@@ -7,10 +7,9 @@
 ; % hello
 ; hello, world
 ;
-.export _start
-    .org 0x40080
+.global _hello
+    .org 0
 section .text
-_start:
 _hello:
         mov     eax, 4      ; sys_write (04)
         mov     edi, 1      ; stdout    (01)
