@@ -8,9 +8,9 @@ https://qiita.com/fygar256/items/1d06fb757ac422796e31
 
 I successfully created a relocatable x86_64 ELF object file using axx on FreeBSD, linked it, and executed it. On March 12, 2026, paxx gained the `-o` option and relocatable ELF output functionality. paxx's relocatable ELF generation only supports elf64. Generating elf64 for relocatable ELF as object output is a special case, but since I only have x86_64 machines, I only have one for now. I'll consider general object file output later.
 
-On April 23, 2026, the `.extern` and `.global` directives were added to `axx`. I've tested them.
+On April 23, 2026, the `.extern` and `.global` directives were added to axx. I've tested them.
 
-I believe the current `axx` ELF output supports Linux. Strictly speaking, since FreeBSD and Linux are different operating systems, you need to specify `OSABI` in the ELF file: 9 for FreeBSD and 0 for Linux. In that case, you need to specify something like `--osabi Linux` in the first option passed to `paxx`. I don't think `ld` checks that far, though.
+I believe the current axx ELF output supports Linux. Strictly speaking, since FreeBSD and Linux are different operating systems, you need to specify 9 for OSABI in the ELF file and 0 for Linux. In that case, you need to specify something like `--osabi Linux` in the first option passed to paxx. I don't think ld checks that far, though.
 
 Assemble
 ```
@@ -35,6 +35,8 @@ Minimal pattern file for hello
 MOV r,!e :: 0xb8|r,e,e>>8,e>>16,e>>24
 MOVABS RSI,!e:: 0x48,0xbe,@@[8,*(e,%%)]
 SYSCALL :: 0xf,0x5
+MOV RAX,!e :: 0x48,0xb8,@@[8,*(e,%%)]
+JMP RAX :: 0xff,0xe0
 DB e :: e
 ```
 
@@ -58,24 +60,22 @@ mov eax, 1
 syscall
 msg: .ascii "hello, world\n"
 len: .equ $$ - msg
-end section
+endsection
 ```
-
-hel.s hello call wrapper (for .extern,.global directive test)
-
-```
+wrapper for calling hello (for .extern, .global directive test)
+```assebly:hel.s
 ; axx test example hello world.
 ; for x86_64 FreeBSD
 ;
 .extern _hello
 .global _start
-.org 0
 section .text
 _start:
-jmp _hello
+mov rax,_hello
+jmp rax
 endsection
 ```
-Note that when running on Linux, it seems to work simply by changing the system call number.
+Note that when running on Linux, it seems to work fine as long as you change the system call number.
 
 #### Conversion Table
 ```text:FreeBSD
@@ -110,9 +110,9 @@ MAP_FLAGS 0x0022 ; MAP_PRIVATE|MAP_ANONYMOUS (Linux)
 
 The LLVM linker also passed.
 
-````
+```
 % ld.lld -o hello hello.o hel.o
 % ./hello
 hello, world
 %
-````
+```
