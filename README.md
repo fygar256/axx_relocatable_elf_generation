@@ -36,7 +36,7 @@ MOV r,!e :: 0xb8|r,e,e>>8,e>>16,e>>24
 MOVABS RSI,!e:: 0x48,0xbe,@@[8,*(e,%%)]
 SYSCALL :: 0xf,0x5
 DB e :: e
-````
+```
 
 hello.s body
 
@@ -59,11 +59,11 @@ syscall
 msg: .ascii "hello, world\n"
 len: .equ $$ - msg
 end section
-````
+```
 
 hel.s hello call wrapper (for .extern,.global directive test)
 
-````
+```
 ; axx test example hello world.
 ; for x86_64 FreeBSD
 ;
