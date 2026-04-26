@@ -116,3 +116,39 @@ The LLVM linker also passed.
 hello, world
 %
 ```
+
+# C language library call test
+
+```text:clinktest.axx
+LEA RDI,[RIP+!s]::0x48,0x8d,0x3d,@@[4,*(s-$$-7,%%)]
+XOR EAX,EAX::0x31,0xc0
+CALL !s::0xe8,@@[4,*(s-$$-5,%%)]
+RET::0xc3
+```
+
+```text:clinktest.s
+.extern puts::plt32 ;In axx, plt32 is specified like this.
+
+section.text
+.global main
+
+main: 
+lea rdi, [rip+msg] 
+xor eax, eax 
+call puts 
+ret
+section.data
+msg: 
+.asciiz "hello\n"
+```
+
+
+### execution
+
+```
+axx clinktest.axx clinktest.s -o clinktest.o
+gcc -o testexe clinktest.o -lc
+testexe
+hello
+
+```
