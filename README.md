@@ -38,7 +38,7 @@ MOVABS RSI,!e:: 0x48,0xbe,@@[8,*(e,%%)]
 SYSCALL :: 0xf,0x5
 MOVABS RAX,!e:: 0x48,0xB8,@@[8,*(e,%%)]
 CALL RAX :: 0xff,0xd0
-CALL !e :: 0xe8,@@[4,*(e-$$+5,%%)]
+CALL !e :: 0xe8,@@[4,*(e-($$+5),%%)]
 NOP:: 0x90
 RET :: 0xC3
 ```
