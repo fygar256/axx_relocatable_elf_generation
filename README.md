@@ -25,6 +25,7 @@ Execute
 ```
 % hello
 hello, world
+hello, world
 %
 ```
 Minimal pattern file for hello
@@ -32,11 +33,14 @@ Minimal pattern file for hello
 .setsym::EAX::0
 .setsym::EDI::7
 .setsym::EDX::2
-MOV r,!e   ::    0xb8|r,e,e>>8,e>>16,e>>24
-MOVABS RSI,!e::  0x48,0xbe,@@[8,*(e,%%)]
-SYSCALL     ::   0xf,0x5
-JMP !e      ::   0xe9,@@[4,*(e-$$,%%)]
-NOP :: 0x90
+MOV r,!e :: 0xb8|r,e,e>>8,e>>16,e>>24
+MOVABS RSI,!e:: 0x48,0xbe,@@[8,*(e,%%)]
+SYSCALL :: 0xf,0x5
+MOVABS RAX,!e:: 0x48,0xB8,@@[8,*(e,%%)]
+CALL RAX :: 0xff,0xd0
+CALL !e :: 0xe8,@@[4,*(e-$$,%%)]
+NOP:: 0x90
+RET :: 0xC3
 ```
 
 hello.s body
@@ -45,35 +49,48 @@ hello.s body
 ; axx test example hello world.
 ; for x86_64 FreeBSD
 ;
-.global _hello 
-.org 0
-.section.text
-_hello: 
-mov eax, 4 ; sys_write (04) 
+; assemble:
+; axx.py hello.axx hello.s -o hello.o
+;ld hello.o -o hello
+;% hello
+; hello, world
+;
+.global _hello
+.global _hello2
+.section .text
+_hello:
+_hello2: mov eax, 4 ; sys_write (04) 
 mov edi, 1; stdout (01) 
 mov edx,len ; length (13) 
 movabs rsi,msg ; address 
 syscall 
-mov edi, 0; return 0 
-mov eax, 1 
-syscall
+ret
 msg: .ascii "hello, world\n"
 len: .equ $$ - msg
 .endsection
 ```
-wrapper for calling hello (for .extern, .global directive test)
-```assebly:hel.s
+
+hel.s hello call wrapper (for .extern,.global directive test)
+
+```assembly:hel.s
+; axx test example hello world.
 ; for x86_64 FreeBSD
 ;
-.extern _hello
+.extern _hello::abs64
+.extern _hello2
 .global _start
 .section .text
-_start:
-        nop
-        jmp _hello
+_start: 
+nop 
+call _hello2 
+movabs rax,_hello 
+call rax 
+mov edi,0 ; return 0
+mov eax,1
+syscall
 .endsection
 ```
-Note that when running on Linux, it seems to work fine as long as you change the system call number.
+Note that when running on Linux, it seems to work simply by changing the system call number.
 
 #### Conversion Table
 ```text:FreeBSD
@@ -118,16 +135,16 @@ hello, world
 # C language library call test
 
 ```text:clinktest.axx
-LEA RDI,[RIP+!s]::0x48,0x8d,0x3d,@@[4,*(s-$$-7,%%)]
+LEA RDI,[RIP+!s]::0x48,0x8d,0x3d,@@[4,*(s-$$,%%)]
 XOR EAX,EAX::0x31,0xc0
-CALL !s::0xe8,@@[4,*(s-$$-5,%%)]
+CALL !s::0xe8,@@[4,*(s-$$,%%)]
 RET::0xc3
 ```
 
 ```text:clinktest.s
-.extern puts::plt32 ;In axx, plt32(rel type) is specified like this.
+.extern puts::plt32 ; In axx, you specify plt32 (relocation type) like this.
 
-.section.text
+.section .text
 .global main
 
 main: 
@@ -135,13 +152,12 @@ lea rdi, [rip+msg]
 xor eax, eax 
 call puts 
 ret
-.section.data
+.section .data
 msg: 
 .asciz "hello\n"
 ```
 
-
-### execution
+execution
 
 ```
 axx clinktest.axx clinktest.s -o clinktest.o
