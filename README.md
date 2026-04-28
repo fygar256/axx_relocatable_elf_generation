@@ -129,6 +129,7 @@ The LLVM linker also passed.
 % ld.lld -o hello hello.o hel.o
 % ./hello
 hello, world
+hello, world
 %
 ```
 
