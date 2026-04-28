@@ -32,12 +32,11 @@ Minimal pattern file for hello
 .setsym::EAX::0
 .setsym::EDI::7
 .setsym::EDX::2
-MOV r,!e :: 0xb8|r,e,e>>8,e>>16,e>>24
-MOVABS RSI,!e:: 0x48,0xbe,@@[8,*(e,%%)]
-SYSCALL :: 0xf,0x5
-MOV RAX,!e :: 0x48,0xb8,@@[8,*(e,%%)]
-JMP RAX :: 0xff,0xe0
-DB e :: e
+MOV r,!e   ::    0xb8|r,e,e>>8,e>>16,e>>24
+MOVABS RSI,!e::  0x48,0xbe,@@[8,*(e,%%)]
+SYSCALL     ::   0xf,0x5
+JMP !e      ::   0xe9,@@[4,*(e-$$,%%)]
+NOP :: 0x90
 ```
 
 hello.s body
@@ -48,7 +47,7 @@ hello.s body
 ;
 .global _hello 
 .org 0
-section.text
+.section.text
 _hello: 
 mov eax, 4 ; sys_write (04) 
 mov edi, 1; stdout (01) 
@@ -60,7 +59,7 @@ mov eax, 1
 syscall
 msg: .ascii "hello, world\n"
 len: .equ $$ - msg
-endsection
+.endsection
 ```
 wrapper for calling hello (for .extern, .global directive test)
 ```assebly:hel.s
@@ -73,7 +72,16 @@ section .text
 _start:
 mov rax,_hello
 jmp rax
-endsection
+endsection; axx test example hello world.
+; for x86_64 FreeBSD
+;
+.extern _hello
+.global _start
+.section .text
+_start:
+        nop
+        jmp _hello
+.endsection
 ```
 Note that when running on Linux, it seems to work fine as long as you change the system call number.
 
@@ -129,7 +137,7 @@ RET::0xc3
 ```text:clinktest.s
 .extern puts::plt32 ;In axx, plt32 is specified like this.
 
-section.text
+.section.text
 .global main
 
 main: 
@@ -137,7 +145,7 @@ lea rdi, [rip+msg]
 xor eax, eax 
 call puts 
 ret
-section.data
+.section.data
 msg: 
 .asciiz "hello\n"
 ```
