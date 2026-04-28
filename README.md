@@ -137,7 +137,7 @@ call puts
 ret
 .section.data
 msg: 
-.asciiz "hello\n"
+.asciz "hello\n"
 ```
 
 
