@@ -3,9 +3,9 @@
 ;
 .extern _hello
 .global _start
-section .text
+.section .text
 _start:
-        mov rax,_hello
-        jmp rax
-endsection
+        nop
+        jmp _hello
+.endsection
 

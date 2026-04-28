@@ -8,7 +8,7 @@
 ; hello, world
 ;
 .global _hello
-section .text
+.section .text
 _hello:
         mov     eax, 4      ; sys_write (04)
         mov     edi, 1      ; stdout    (01)
@@ -20,5 +20,5 @@ _hello:
         syscall
 msg:     .ascii      "hello, world\n"
 len:     .equ     $$ - msg
-endsection
+.endsection
 
