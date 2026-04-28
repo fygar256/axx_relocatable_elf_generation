@@ -135,7 +135,7 @@ RET::0xc3
 ```
 
 ```text:clinktest.s
-.extern puts::plt32 ;In axx, plt32 is specified like this.
+.extern puts::plt32 ;In axx, plt32(rel type) is specified like this.
 
 .section.text
 .global main
