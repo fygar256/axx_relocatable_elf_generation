@@ -14,6 +14,10 @@ As of May 3, 2026, the relocatable ELF output of axx has been fully implemented.
 
 The current axx ELF output supports Linux. Strictly speaking, since FreeBSD and Linux are different operating systems, you need to specify 9 for OSABI in the ELF file and 0 for Linux. In that case, you need to specify something like `--osabi Linux` in the first option passed to paxx. I don't think ld checks that far, though.
 
+#### Test environment
+
+FreeBSD, EndeavourOS (Linux)
+
 Assemble
 ```
 axx.py hello.axx hello.s -o hello.o
