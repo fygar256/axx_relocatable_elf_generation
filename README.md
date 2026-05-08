@@ -30,7 +30,7 @@ got32, gotpcrel, got64
 
 ELF output is also compatible with Linux.
 
-The current ELF output of axx.py is a special solution for FreeBSD and Linux for x86_64, but automatic detection of the relocation type for ELF64 is not implemented because it would compromise the generality of the instructions.
+The current axx.py ELF output is a special solution for FreeBSD and Linux for x86_64, but automatic detection of the relocation type for ELF64 is not implemented because it would compromise the generality of the instructions.
 
 ### Test Environment
 
@@ -41,9 +41,17 @@ Assembly
 axx.py hello.axx hello.s -o hello.o
 axx.py hello.axx hel.s -o hel.o
 ```
+
 Linking
+
 ```
 ld hello.o hel.o -o hello
+```
+
+LLVM linker also passed.
+
+```
+ld.lld -o hello hello.o hel.o
 ```
 Execution
 ```
@@ -52,7 +60,7 @@ hello, world
 hello, world
 %
 ```
-Minimal Pattern File for hello
+Minimal pattern file for hello
 ```text:hello.axx
 .setsym::EAX::0
 .setsym::EDI::7
@@ -65,13 +73,19 @@ CALL RAX :: 0xff,0xd0
 CALL !e :: 0xe8,@@[4,*(e-($$+5),%%)]
 NOP:: 0x90
 RET :: 0xC3
-````
+```
 
 hello.s body
 
 ```assembly:hello.s
 ; axx test example hello world.
 ; for x86_64 FreeBSD
+;
+; assemble:
+; axx.py hello.axx hello.s -o hello.o
+;ld hello.o -o hello
+;% hello
+; hello, world
 ;
 .global _hello
 .global _hello2
@@ -81,17 +95,15 @@ _hello2:
 mov eax, 4 ; sys_write (04) 
 mov edi, 1; stdout (01) 
 mov edx,len ; length (13) 
-movabs rsi,msg ; address 
-syscall 
+movabs rsi,msg ; address
+syscall
 ret
 msg: .ascii "hello, world\n"
 len: .equ $$ - msg
 .endsection
-````
-
-hel.s wrapper for calling hello (for .extern,.global directive test)
-
-```assembly:hel.s
+```
+hel.s hello call wrapper (for .extern,.global directive test)
+```assebly:hel.s
 ; axx test example hello world.
 ; for x86_64 FreeBSD
 ;
@@ -109,27 +121,28 @@ mov eax,1
 syscall
 .endsection
 ```
-Default relocation types by size in x86-64:
-```
-8 bytes: abs64:R_X86_64_64 (Type 1)
-4 bytes: pc32 :R_X86_64_PC32 (Type 2)
-2 bytes: pc16 :R_X86_64_PC16 (Type 13)
-1 byte: pc8 :R_X86_64_PC8 (Type 15)
-```
 
+Default relocation types by size in x86-64:
+
+```
+8 bytes: abs64: R_X86_64_64 (Type 1)
+4 bytes: pc32 : R_X86_64_PC32 (Type 2)
+2 bytes: pc16 : R_X86_64_PC16 (Type 13)
+1 byte: pc8 : R_X86_64_PC8 (Type 15)
+```
 ### How to run on Linux
 
-When running on Linux, pass the option `--osabi Linux` to axx,
-and change the system call number.
+When running on Linux, pass the option `--osabi Linux` to axx and change the system call number. Normally, the linker doesn't look at OSABI, so you might not need to pass `--osabi`. Pass it if you get an error.
 
-Linux was tested using EndeavourOS.
+Linux testing was performed on EndeavourOS.
 
-#### Conversion Table
+#### Conversion table
 
 ```text:FreeBSD
 ;
 ; FreeBSD system call numbers
 ;
+
 SYS_exit 1
 SYS_read 3
 SYS_write 4
@@ -138,6 +151,7 @@ SYS_close 6
 SYS_mmap 477
 SYS_munmap 73
 SYS_lseek 478
+
 MAP_FLAGS 0x1002 ; MAP_PRIVATE|MAP_ANON (FreeBSD)
 ```
 
@@ -153,20 +167,12 @@ SYS_close 3
 SYS_mmap 9
 SYS_munmap 11
 SYS_lseek 8
+
 MAP_FLAGS 0x0022 ; MAP_PRIVATE|MAP_ANONYMOUS (Linux)
 ```
 
-### The LLVM linker also passed.
 
-```
-% ld.lld -o hello hello.o hel.o
-% ./hello
-hello, world
-hello, world
-%
-```
-
-# C language library call test
+# C Language Library Call Test
 
 ```text:clinktest.axx
 LEA RDI,[RIP+!s]::0x48,0x8d,0x3d,@@[4,*(s-$$,%%)]
@@ -177,7 +183,6 @@ RET::0xc3
 
 ```text:clinktest.s
 .extern puts::plt32 ;In axx, you specify plt32 (relocation type) like this.
-
 
 .section .text
 .global main
