@@ -12,6 +12,9 @@ On April 23, 2026, the `.extern` and `.global` directives were added to axx. I'v
 
 As of May 3, 2026, the relocatable ELF output of axx has been fully implemented. The relocation type table supports x86-64, ARM, AArch64, RISC-V, and PPC.
 
+As of May 8, 2026, axx now allows specifying the relocation type using `.equ`.
+You can specify it with `label: .equ <expression>::reloc_type`.
+
 The current axx ELF output supports Linux. Strictly speaking, since FreeBSD and Linux are different operating systems, you need to specify 9 for OSABI in the ELF file and 0 for Linux. In that case, you need to specify something like `--osabi Linux` in the first option passed to paxx. I don't think ld checks that far, though.
 
 #### Test environment
