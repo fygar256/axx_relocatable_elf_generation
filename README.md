@@ -1,6 +1,6 @@
 ---
 title: Creating a relocatable x86_64 ELF with axx, and then linking and executing it
-tags: FreeBSD axx x86_64 assembly Terminal
+tags: FreeBSD axx x86_64 assembly Linux
 author: fygar256
 slide: false
 ---
