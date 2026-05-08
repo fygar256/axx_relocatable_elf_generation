@@ -23,7 +23,10 @@ pc32, plt32, pc16, pc8
 got32, gotpcrel, got64
 ```
 
-The current axx ELF output supports Linux. Strictly speaking, since FreeBSD and Linux are different operating systems, you need to specify 9 for OSABI in the ELF file and 0 for Linux. In that case, you need to specify something like `--osabi Linux` in the first option passed to paxx. I don't think ld checks that far, though.
+ELF output is also compatible with Linux. Strictly speaking, since FreeBSD and Linux are different operating systems, you must specify 9 for OSABI in the ELF output and 0 for Linux. In that case, you must specify something like `--osabi Linux` in the first option passed to paxx. I don't think ld checks that far, though.
+
+The current axx.py ELF output is a special solution for FreeBSD and Linux for x86_64, but automatic detection of relocation types for ELF64 is not implemented because it would compromise the generality of the instructions.
+
 
 #### Test environment
 
