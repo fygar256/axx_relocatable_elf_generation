@@ -10,7 +10,7 @@ I successfully created a relocatable x86_64 ELF object file using axx on FreeBSD
 
 On April 23, 2026, the `.extern` and `.global` directives were added to axx. I've tested them.
 
-As of May 3, 2026, the relocatable ELF output of axx has been fully implemented. The relocation type table supports x86-64, ARM, AArch64, RISC-V, and PPC.
+As of May 3, 2026, the relocatable ELF output of axx has been fully implemented. The CPUTYPE table supports x86-64, ARM, AArch64, RISC-V, and PPC.
 
 As of May 8, 2026, axx now allows specifying the relocation type using `.equ`.
 You can specify it with `label: .equ <expression>::reloc_type`.
