@@ -1,23 +1,26 @@
 ---
 title: Creating a relocatable x86_64 ELF with axx, and then linking and executing it
-tags: FreeBSD axx x86_64 assembly Linux
+tags: FreeBSD axx x86_64 assembly Terminal
 author: fygar256
 slide: false
 ---
 https://qiita.com/fygar256/items/1d06fb757ac422796e31
 
-I successfully created a relocatable x86_64 ELF object file using axx on FreeBSD, linked it, and executed it. On March 12, 2026, paxx gained the `-o` option and relocatable ELF output functionality. paxx's relocatable ELF generation only supports elf64. Generating elf64 for relocatable ELF as object output is a special case, but since I only have x86_64 machines, I only have one for now. I'll consider general object file output later.
+I successfully created a relocatable x86_64 ELF object file using axx on FreeBSD, linked it, and executed it. On March 12, 2026, paxx gained the `-o` option and relocatable ELF output functionality. paxx's relocatable ELF generation only supports elf64. Generating elf64 for relocatable ELF as object output is a special case, but since I only have x86_64 machines, I only have one for now. I'll consider general object file output later. On April 23, 2026, the `.extern` and `.global` directives were added to axx. Testing was performed.
 
-On April 23, 2026, the `.extern` and `.global` directives were added to axx. I've tested them.You can specify the relocation type with `.extern label::reloc_type.`
+The relocation type can be specified using `.extern label::reloc_type`.
 
-As of May 3, 2026, the x86_64 relocatable ELF output for axx has been fully implemented.
+On May 3, 2026, the x86_64 relocatable ELF output of axx became complete.
 
-The default relocation types support x86-64, ARM, AArch64, RISC-V, and PPC.  All that's left is to extend the relocation type for each CPU.
+The default relocation type supports x86-64, ARM, AArch64, RISC-V, and PPC.
 
-As of May 8, 2026, axx now allows specifying the relocation type using `.equ`.
-You can specify it with `label: .equ <expression>::reloc_type`.
+The remaining step is to extend the relocation type for each CPU.
 
-Relocation Type Table
+On May 8, 2026, it became possible to specify the relocation type using `.equ` in axx.
+
+It can be specified using `label: .equ <expression>::reloc_type`.
+
+Relocation Type
 
 ```
 abs64, abs32, abs32s, abs16, abs8
@@ -25,32 +28,31 @@ pc32, plt32, pc16, pc8
 got32, gotpcrel, got64
 ```
 
-ELF output is also compatible with Linux. Strictly speaking, since FreeBSD and Linux are different operating systems, you must specify 9 for OSABI in the ELF output and 0 for Linux. In that case, you must specify something like `--osabi Linux` in the first option passed to paxx. I don't think ld checks that far, though.
+ELF output is also compatible with Linux.
 
-The current axx.py ELF output is a special solution for FreeBSD and Linux for x86_64, but automatic detection of relocation types for ELF64 is not implemented because it would compromise the generality of the instructions.
+The current ELF output of axx.py is a special solution for FreeBSD and Linux for x86_64, but automatic detection of the relocation type for ELF64 is not implemented because it would compromise the generality of the instructions.
 
-
-#### Test environment
+### Test Environment
 
 FreeBSD, EndeavourOS (Linux)
 
-Assemble
+Assembly
 ```
 axx.py hello.axx hello.s -o hello.o
 axx.py hello.axx hel.s -o hel.o
 ```
-Link
+Linking
 ```
 ld hello.o hel.o -o hello
 ```
-Execute
+Execution
 ```
 % hello
 hello, world
 hello, world
 %
 ```
-Minimal pattern file for hello
+Minimal Pattern File for hello
 ```text:hello.axx
 .setsym::EAX::0
 .setsym::EDI::7
@@ -63,7 +65,7 @@ CALL RAX :: 0xff,0xd0
 CALL !e :: 0xe8,@@[4,*(e-($$+5),%%)]
 NOP:: 0x90
 RET :: 0xC3
-```
+````
 
 hello.s body
 
@@ -71,17 +73,12 @@ hello.s body
 ; axx test example hello world.
 ; for x86_64 FreeBSD
 ;
-; assemble:
-; axx.py hello.axx hello.s -o hello.o
-;ld hello.o -o hello
-;% hello
-; hello, world
-;
 .global _hello
 .global _hello2
 .section .text
 _hello:
-_hello2: mov eax, 4 ; sys_write (04) 
+_hello2: 
+mov eax, 4 ; sys_write (04) 
 mov edi, 1; stdout (01) 
 mov edx,len ; length (13) 
 movabs rsi,msg ; address 
@@ -90,9 +87,9 @@ ret
 msg: .ascii "hello, world\n"
 len: .equ $$ - msg
 .endsection
-```
+````
 
-hel.s hello call wrapper (for .extern,.global directive test)
+hel.s wrapper for calling hello (for .extern,.global directive test)
 
 ```assembly:hel.s
 ; axx test example hello world.
@@ -102,22 +99,33 @@ hel.s hello call wrapper (for .extern,.global directive test)
 .extern _hello2
 .global _start
 .section .text
-_start: 
-nop 
-call _hello2 
-movabs rax,_hello 
-call rax 
+_start:
+nop
+call _hello2
+movabs rax,_hello
+call rax
 mov edi,0 ; return 0
 mov eax,1
 syscall
 .endsection
 ```
-Note that when running on Linux, changing the system call number will make it work.
+Default relocation types by size in x86-64:
+```
+8 bytes: abs64:R_X86_64_64 (Type 1)
+4 bytes: pc32 :R_X86_64_PC32 (Type 2)
+2 bytes: pc16 :R_X86_64_PC16 (Type 13)
+1 byte: pc8 :R_X86_64_PC8 (Type 15)
+```
 
-The Linux system used for testing was EndeavourOS.
+### How to run on Linux
 
+When running on Linux, pass the option `--osabi Linux` to axx,
+and change the system call number.
+
+Linux was tested using EndeavourOS.
 
 #### Conversion Table
+
 ```text:FreeBSD
 ;
 ; FreeBSD system call numbers
@@ -148,7 +156,7 @@ SYS_lseek 8
 MAP_FLAGS 0x0022 ; MAP_PRIVATE|MAP_ANONYMOUS (Linux)
 ```
 
-The LLVM linker also passed.
+### The LLVM linker also passed.
 
 ```
 % ld.lld -o hello hello.o hel.o
@@ -168,7 +176,8 @@ RET::0xc3
 ```
 
 ```text:clinktest.s
-.extern puts::plt32 ; In axx, you specify plt32 (relocation type) like this.
+.extern puts::plt32 ;In axx, you specify plt32 (relocation type) like this.
+
 
 .section .text
 .global main
