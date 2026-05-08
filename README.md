@@ -8,14 +8,14 @@ https://qiita.com/fygar256/items/1d06fb757ac422796e31
 
 I successfully created a relocatable x86_64 ELF object file using axx on FreeBSD, linked it, and executed it. On March 12, 2026, paxx gained the `-o` option and relocatable ELF output functionality. paxx's relocatable ELF generation only supports elf64. Generating elf64 for relocatable ELF as object output is a special case, but since I only have x86_64 machines, I only have one for now. I'll consider general object file output later.
 
-On April 23, 2026, the `.extern` and `.global` directives were added to axx. I've tested them.
+On April 23, 2026, the `.extern` and `.global` directives were added to axx. I've tested them.You can specify the relocation type with `.extern label::reloc_type.`
 
 As of May 3, 2026, the relocatable ELF output of axx has been fully implemented. The CPUTYPE table supports x86-64, ARM, AArch64, RISC-V, and PPC.
 
 As of May 8, 2026, axx now allows specifying the relocation type using `.equ`.
 You can specify it with `label: .equ <expression>::reloc_type`.
 
-Relocation Type
+Relocation Type Table
 
 ```
 abs64, abs32, abs32s, abs16, abs8
