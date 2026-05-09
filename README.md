@@ -83,9 +83,6 @@ hello.s body
 ;
 ; assemble:
 ; axx.py hello.axx hello.s -o hello.o
-;ld hello.o -o hello
-;% hello
-; hello, world
 ;
 .global _hello
 .global _hello2
