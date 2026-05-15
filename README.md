@@ -208,7 +208,7 @@ hello
 
 x86_64 Pattern File (Partial)
 
-x86_64.axx
+got.axx
 
 ```
 /* ========================================
@@ -400,7 +400,7 @@ Compile, assemble, and link
 
 ```
 gcc -fPIC -c foo.c
-axx x86_64.axx got.s -o got.o
+axx got.axx got.s -o got.o
 gcc -pie got.o foo.o -o execfile
 ```
 
