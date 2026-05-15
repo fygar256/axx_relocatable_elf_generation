@@ -212,10 +212,10 @@ got.axx
 
 ```
 /* ========================================
-x86_64 Pattern File for axx
-======================================= */
+   x86_64 Pattern File for axx (got.s 用に最適化済み)
+   ======================================== */
 
-/* ====================== Register Definitions ====================== */
+/* ====================== レジスタ定義 ====================== */
 .setsym::RAX::0
 .setsym::RCX::1
 .setsym::RDX::2
@@ -235,7 +235,7 @@ x86_64 Pattern File for axx
 
 .setsym::EAX::0
 .setsym::ECX::1
-.s etsym::EDX::2
+.setsym::EDX::2
 .setsym::EBX::3
 .setsym::ESP::4
 .setsym::EBP::5
@@ -250,107 +250,37 @@ x86_64 Pattern File for axx
 .setsym::R14D::14
 .setsym::R15D::15
 
-.setsym::AL::0
-.setsym::CL::1
-.setsym::DL::2
-.setsym::BL::3
+/* ====================== 使用中の命令のみ ====================== */
 
-/* ====================== MOV RAX,[rip+foo] ====================== */
+/* MOV RAX,[RIP+foo] */
 MOV RAX,[RIP+!d] :: :: 0x48,0x8b,0x05,@@[4,*(d-$.,%%)]
 
-/* ====================== 64bit Memory Load ====================== */
-/* MOV r64, [r/m64] (opcode 0x8B)
-REX: W=1, R=(d>=8 → extends reg field), B=(b>=8 → extends r/m field)
-ModRM: mod=00, reg=d (dest), r/m=b (source) */
-MOV d,[b] :: :: 0x48|((d&8)>>1)|((b&8)>>3),0x8b,((d&7)<<3)|(b&7)
+/* 64bit メモリロード */
+MOV d,[b]  ::  ::  0x48|((d&8)>>1)|((b&8)>>3),0x8b,((d&7)<<3)|(b&7)
 
-/* ======================= 32-bit memory load ====================== */
-/* MOV r32, [r/m32] (opcode 0x8B, REX.W omitted)
-';(cond?val:0)' → If val is 0, byte is omitted */
-MOV DWORD d,[b] :: :: ;(((d|b)&8)?(0x40|((d&8)>>1)|((b&8)>>3)):0),0x8b,((d&7)<<3)|(b&7)
+/* 64bit レジスタ間 MOV */
+MOV d,s  ::  ::  0x48|((s&8)>>1)|((d&8)>>3),0x89,0xc0|(d&7)|((s&7)<<3)
 
-/* ====================== 64bit register-to-register MOV ====================== */
-/* MOV r/m64, r64 (opcode 0x89) 
-reg=s(source), r/m=d(dest) 
-REX: W=1, R=(s>=8), B=(d>=8) */
-MOV d,s :: :: 0x48|((s&8)>>1)|((d&8)>>3),0x89,0xc0|(d&7)|((s&7)<<3)
+/* 64bit 即値 MOV */
+MOV d,!e  ::  ::  0x48|((d&8)>>3),0xb8|(d&7),@@[8,*(e,%%)]
 
-/* ====================== 64bit immediate value MOV ====================== */
-/* MOV r64, imm64 (opcode 0xB8+rd) 
-REX: W=1, B=(d>=8 → extends opcode register field) 
-opcode = 0xB8 | (d&7) */
-MOV d,!e :: :: 0x48|((d&8)>>3),0xb8|(d&7),@@[8,*(e,%%)]
+/* XOR */
+XOR d,s  ::  ::  0x48|((s&8)>>1)|((d&8)>>3),0x31,0xc0|(d&7)|((s&7)<<3)
 
-/* ====================== 32-bit register-to-register MOV ====================== */
-MOV DWORD d,s :: :: ;(((d|s)&8)?(0x40|((s&8)>>1)|((d&8)>>3)):0),0x89,0xc0|(d&7)|((s&7)<<3)
+/* LEA RIP相対 */
+LEA d,[RIP+!a]  ::  ::  0x48|((d&8)>>1),0x8d,((d&7)<<3)|5,@@[4,*(a-$.,%%)]
 
-/* ====================== 32-bit immediate value MOV ====================== */
-MOV DWORD d,!e :: :: ;((d&8)?(0x41):0),0xb8|(d&7),@@[4,*(e,%%)]
+/* CALL */
+CALL !e      ::   0xe8,@@[4,*(e-$.,%%)]
 
-/* ====================== 8bit MOV ====================== */
-MOV BYTE d,s :: :: ;(((d|s)&8)?(0x40|((s&8)>>1)|((d&8)>>3)):0),0x88,0xc0|(d&7)|((s&7)<<3)
-MOV BYTE d,!e :: :: 0xb0|(d&7),e
+/* その他 */
+PUSH RBP ::  ::  0x55
+LEAVE    ::  ::  0xc9
+RET      ::  ::  0xc3
 
-/* ====================== ADD ====================== */
-/* ADD r/m64, r64 (opcode 0x01) 
-REX: W=1, R=(s>=8), B=(d>=8) */
-ADD d,s :: :: 0x48|((s&8)>>1)|((d&8)>>3),0x01,0xc0|(d&7)|((s&7)<<3)
-
-/* ADD r/m64, imm32 (opcode 0x81 /0) 
-ModRM: mod=11, /0 → reg=0, r/m=d → 0xC0|(d&7) */
-ADD d,!i :: :: 0x48|((d&8)>>3),0x81,0xc0|(d&7),@@[4,*(i,%%)]
-
-/* ====================== XOR ====================== */
-XOR d,s :: :: 0x48|((s&8)>>1)|((d&8)>>3),0x31,0xc0|(d&7)|((s&7)<<3)
-
-/* ====================== CMP (64bit) ====================== */
-/* CMP r/m64, r64 (opcode 0x39) */
-CMP d,s :: :: 0x48|((s&8)>>1)|((d&8)>>3),0x39,0xc0|(d&7)|((s&7)<<3)
-
-/* CMP r/m64, imm32 (opcode 0x81 /7) 
-ModRM: mod=11, /7 → reg=7, r/m=d → 0xF8|(d&7) */
-CMP d,!i :: :: 0x48|((d&8)>>3),0x81,0xf8|(d&7),@@[4,*(i,%%)]
-
-/* ====================== CMP (32bit) ====================== */
-CMP DWORD d,s :: :: ;(((d|s)&8)?(0x40|((s&8)>>1)|((d&8)>>3)):0),0x39,0xc0|(d&7)|((s&7)<<3)
-CMP DWORD d,!i :: :: ;((d&8)?(0x41):0),0x81,0xf8|(d&7),@@[4,*(i,%%)]
-
-/* ====================== CMP (8bit) ====================== */
-/* CMP BYTE PTR [b], imm8 — Register indirect
-ModRM: mod=00, /7 → reg=7(CMP), r/m=b → 0x38|(b&7) */
-CMP BYTE [b],!i :: :: ;((b&8)?0x41:0),0x80,0x38|(b&7),i
-
-/* CMP r/m8, imm8 — register direct */
-CMP BYTE d,!i :: :: ;((d&8)?0x41:0),0x80,0xf8|(d&7),i
-
-/* ====================== INC/DEC (64bit) ====================== */
-/* INC r/m64 (opcode 0xFF /0) 
-REX: W=1, B=(d>=8) 
-ModRM: mod=11, /0 → reg=0, r/m=d → 0xC0|(d&7) */
-INC d :: :: 0x48|((d&8)>>3),0xff,0xc0|(d&7)
-
-/* DEC r/m64 (opcode 0xFF /1) 
-ModRM: mod=11, /1 → reg=1, r/m=d → 0xC8|(d&7) */
-DEC d :: :: 0x48|((d&8)>>3),0xff,0xc8|(d&7)
-
-/* ====================== LEA ====================== */
-/* LEA r64, [RIP+disp32] — RIP relative (instruction length = (7 bytes)
-REX: W=1, R=(d>=8)
-ModRM: mod=00, reg=d, r/m=5(RIP+disp32) → ((d&7)<<3)|5 */
-LEA d,[RIP+!a] :: :: 0x48|((d&8)>>1),0x8d,((d&7)<<3)|5,@@[4,*(a-$.,%%)]
-
-/* ====================== Unconditional branch (32-bit relative, 5 bytes) ====================== */
-CALL !e :: 0xe8,@@[4,*(e-$.,%%)]
-
-/* ====================== Other ====================== */
-SYSCALL :: :: 0x0f,0x05
-RET :: :: 0xc3
-NOP :: :: 0x90
-LEAVE :: :: 0xc9
-PUSH RBP :: :: 0x55
-/* ====================== Data ====================== */
-DB !e :: :: e
-DD !e :: :: @@[4,*(e,%%)]
+/* ====================== データ ====================== */
+DB !e  ::  ::  e
+DD !e  ::  ::  @@[4,*(e,%%)]
 ```
 
 got processing assembly source
