@@ -12,7 +12,7 @@ The relocation type can be specified using `.extern label::reloc_type`.
 
 On May 3, 2026, the x86_64 relocatable ELF output of axx became complete.
 
-The default relocation type supports x86-64, ARM, AArch64, RISC-V, and PPC.
+ELF's default CPU types support x86-64, ARM, AArch64, RISC-V, and PPC.
 
 The remaining step is to extend the relocation type for each CPU.
 
