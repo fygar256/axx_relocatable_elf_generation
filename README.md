@@ -20,6 +20,8 @@ On May 8, 2026, it became possible to specify the relocation type using `.equ` i
 
 It can be specified using `label: .equ <expression>::reloc_type`.
 
+On June 12, 2026, the -g option was added to ELF object files to include debug information. This should now allow for the creation of complete ELF object files.
+
 Relocation Type
 
 ```
