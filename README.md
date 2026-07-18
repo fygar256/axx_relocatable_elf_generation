@@ -6,7 +6,9 @@ slide: false
 ---
 https://qiita.com/fygar256/items/1d06fb757ac422796e31
 
-I successfully created a relocatable x86_64 ELF object file using axx on FreeBSD, linked it, and executed it. On March 12, 2026, paxx gained the `-o` option and relocatable ELF output functionality. paxx's relocatable ELF generation only supports elf64. Generating elf64 for relocatable ELF as object output is a special case, but since I only have x86_64 machines, I only have one for now. I'll consider general object file output later. On April 23, 2026, the `.extern` and `.global` directives were added to axx. Testing was performed.
+I successfully created a relocatable x86_64 ELF object file using axx on FreeBSD, linked it, and executed it. On March 12, 2026, paxx gained the `-o` option and relocatable ELF output functionality. 
+
+On April 23, 2026, the `.extern` and `.global` directives were added to axx. Testing was performed.
 
 The relocation type can be specified using `.extern label::reloc_type`.
 
@@ -22,7 +24,9 @@ It can be specified using `label: .equ <expression>::reloc_type`.
 
 On June 12, 2026, the -g option was added to ELF object files to include debug information. This should now allow for the creation of complete ELF object files.
 
-Relocation Type
+As of July 19, 2026, ELF output supports i386, M68K, PowerPC, PowerPC64, s390x, ARM, SuperH, SPARCV9, x86-64, AArch64, and RISC-V; however, 32-bit DWARF output is not supported.
+
+Relocation Type(x86_64)
 
 ```
 abs64, abs32, abs32s, abs16, abs8
@@ -31,8 +35,6 @@ got32, gotpcrel, got64
 ```
 
 ELF output is also compatible with Linux.
-
-The current axx.py ELF output is a special solution for FreeBSD and Linux for x86_64, but automatic detection of the relocation type for ELF64 is not implemented because it would compromise the generality of the instructions.
 
 ### Test Environment
 
